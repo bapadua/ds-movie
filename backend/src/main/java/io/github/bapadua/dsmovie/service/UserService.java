@@ -14,13 +14,10 @@ public class UserService {
     private UserRepository repository;
 
     public User save(final User user) {
-        if (repository.existsByEmail(user.getEmail())) {
-            return user;
-        }
         return repository.saveAndFlush(user);
     }
 
-    public Optional<User> findByEmail(final String email) {
+    public User findByEmail(final String email) {
         return repository.findByEmail(email);
     }
 }

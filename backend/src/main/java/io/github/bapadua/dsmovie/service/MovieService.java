@@ -17,7 +17,14 @@ public class MovieService {
 
     @Transactional
     public MovieDTO save(final Movie movie) {
-        return new MovieDTO(repository.save(movie));
+        Movie save = repository.saveAndFlush(movie);
+        return new MovieDTO(save);
+    }
+
+    @Transactional
+    public MovieDTO save(final MovieDTO movie) {
+        Movie save = repository.saveAndFlush(movie.toEntity());
+        return new MovieDTO(save);
     }
 
     @Transactional(readOnly = true)

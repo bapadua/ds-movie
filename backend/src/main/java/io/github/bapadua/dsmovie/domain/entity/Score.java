@@ -44,4 +44,5 @@ public class Score implements Serializable {
     public void setValue(Double value) {
         this.value = value;
     }
+
 }

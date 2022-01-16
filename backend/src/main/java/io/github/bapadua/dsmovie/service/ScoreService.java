@@ -6,46 +6,56 @@ import io.github.bapadua.dsmovie.domain.dto.ScoreDTO;
 import io.github.bapadua.dsmovie.domain.entity.Movie;
 import io.github.bapadua.dsmovie.domain.entity.Score;
 import io.github.bapadua.dsmovie.domain.entity.User;
+import io.github.bapadua.dsmovie.repository.MovieRepository;
 import io.github.bapadua.dsmovie.repository.ScoreRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.bapadua.dsmovie.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ScoreService {
 
-    @Autowired
-    ScoreRepository repository;
 
-    @Autowired
-    UserService userService;
+    private final MovieRepository movieRepository;
+    private final UserRepository userRepository;
+    private final ScoreRepository scoreRepository;
 
-    @Autowired
-    MovieService movieService;
+    public ScoreService(MovieRepository movieRepository, UserRepository userRepository, ScoreRepository scoreRepository) {
+        this.movieRepository = movieRepository;
+        this.userRepository = userRepository;
+        this.scoreRepository = scoreRepository;
+    }
 
     @Transactional
     public MovieDTO saveScore(ScoreDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail());
+        if (user == null) {
+            user = new User();
+            user.setEmail(dto.getEmail());
+            user = userRepository.saveAndFlush(user);
+        }
 
-        User user = new User(null, dto.getEmail());
-        user = userService.save(user);
-
-        MovieDTO result = movieService.findById(dto.getMovieId());
-        Movie movie = result.toEntity();
-
+        Movie movie = movieRepository.findById(dto.getMovieId()).get();
         Score score = new Score();
         score.setMovie(movie);
         score.setUser(user);
         score.setValue(dto.getScore());
 
-        repository.saveAndFlush(score);
+        score = scoreRepository.saveAndFlush(score);
 
-        Double totalScore = movie.getScoreValue();
-        Integer counter = movie.getScoreCount();
-        Double avg = totalScore / counter;
+        double sum = 0.0;
+        for (Score s : movie.getScores()) {
+            sum = sum + s.getValue();
+        }
+
+        double avg = sum / movie.getScores().size();
+
         movie.setScore(avg);
-        movie.setCount(counter);
+        movie.setCount(movie.getScores().size());
 
-        return movieService.save(movie);
+        movie = movieRepository.save(movie);
+
+        return new MovieDTO(movie);
     }
 
 
