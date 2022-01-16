@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class Score implements Serializable {
 
     @EmbeddedId
-    private ScorePk id;
+    private ScorePk id = new ScorePk();
     private Double value;
 
     public Score() {
